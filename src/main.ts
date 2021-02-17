@@ -1,21 +1,28 @@
-const { Octokit } = require("@octokit/core");
+import { Octokit } from "@octokit/core";
+import { RequestParameters } from "@octokit/core/dist-types/types";
+import Options from "./types/Options";
 
 class GistDB {
-  #gistId;
-  #filename;
-  constructor(token, gistId, filename) {
+  octokit: Octokit;
+  filename?: string;
+  gistId?: string;
+
+  constructor(options: Options) {
+    if (!options.token) {
+      throw new Error("token parameter is required.");
+    }
     this.octokit = new Octokit({
-      auth: token,
+      auth: options.token,
     });
-    this.#gistId = gistId;
-    this.#filename = filename;
+    this.gistId = options.gistId;
+    this.filename = options.filename;
   }
 
-  request(query, config) {
+  request(query: string, config: RequestParameters) {
     return this.octokit.request(query, config);
   }
 
-  async create(filename, content) {
+  async create(filename: string, content: Object) {
     try {
       const response = await this.request("POST /gists", {
         files: {
@@ -31,7 +38,7 @@ class GistDB {
     }
   }
 
-  getGist(gistId) {
+  getGist(gistId: string) {
     try {
       return this.request("GET /gists/{gist_id}", {
         gist_id: gistId,
@@ -41,7 +48,7 @@ class GistDB {
     }
   }
 
-  async get(gistId, filename) {
+  async get(gistId: string, filename: string) {
     try {
       const response = await this.getGist(gistId);
       try {
@@ -54,7 +61,7 @@ class GistDB {
     }
   }
 
-  async getFileList(gistId) {
+  async getFileList(gistId: string) {
     try {
       const response = await this.getGist(gistId);
       return Object.keys(response.data.files);
@@ -63,4 +70,5 @@ class GistDB {
     }
   }
 }
-module.exports = GistDB;
+
+export default GistDB;
