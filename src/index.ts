@@ -1,8 +1,11 @@
 import { Octokit } from "@octokit/core";
 import { RequestParameters } from "@octokit/core/dist-types/types";
 import Options from "./types/Options";
-
-class GistDB {
+import { Response } from "./interfaces";
+/**
+ * Class to interact with gists
+ */
+export class GistDB {
   octokit: Octokit;
   filename?: string;
   gistId?: string;
@@ -21,8 +24,13 @@ class GistDB {
   request(query: string, config: RequestParameters) {
     return this.octokit.request(query, config);
   }
-
-  async create(filename: string, content: Object) {
+  /**
+   * Create a new gist based in a filename and the content.
+   * @param filename name of the file to create
+   * @param content content of the file to attach to the new gist
+   * @returns {object} return the info of the action
+   */
+  async create(filename: string, content: object) {
     try {
       const response = await this.request("POST /gists", {
         files: {
@@ -48,7 +56,13 @@ class GistDB {
     }
   }
 
-  async get(gistId: string, filename: string) {
+  /**
+   * To get the content of a gist, based in id and filename
+   * @param gistId id of the gist
+   * @param filename name of the file inside the gist
+   * @return {Promise<string | object>} File content
+   */
+  async get(gistId: string, filename: string): Promise<Response> {
     try {
       const response = await this.getGist(gistId);
       try {
@@ -61,7 +75,11 @@ class GistDB {
     }
   }
 
-  async getFileList(gistId: string) {
+  /**
+   * To get the list of files inside a gist
+   * @param gistId id of the gist
+   */
+  async getFileList(gistId: string): Promise<Array<string>> {
     try {
       const response = await this.getGist(gistId);
       return Object.keys(response.data.files);
@@ -70,5 +88,3 @@ class GistDB {
     }
   }
 }
-
-export { GistDB };

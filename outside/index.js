@@ -1,4 +1,4 @@
-const { GistDB } = require("../dist/main");
+const { GistDB } = require("../lib/index");
 
 const db = new GistDB({
   token: "",
