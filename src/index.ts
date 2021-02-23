@@ -1,6 +1,12 @@
 import { Octokit } from "@octokit/core";
-import { RequestParameters } from "@octokit/core/dist-types/types";
-import Options from "./types/Options";
+import { OctokitResponse } from "@octokit/types";
+import {
+  GistIORequest,
+  GistIOOptions,
+  GistIOCreate,
+  GistIOGet,
+  GistIOPut,
+} from "./types/index";
 import { Response } from "./interfaces";
 /**
  * Class to interact with gists
@@ -10,7 +16,7 @@ export class GistDB {
   filename?: string;
   gistId?: string;
 
-  constructor(options: Options) {
+  constructor(options: GistIOOptions) {
     if (!options.token) {
       throw new Error("token parameter is required.");
     }
@@ -21,7 +27,7 @@ export class GistDB {
     this.filename = options.filename;
   }
 
-  request(query: string, config: RequestParameters) {
+  request({ query, config }: GistIORequest) {
     return this.octokit.request(query, config);
   }
   /**
@@ -30,15 +36,18 @@ export class GistDB {
    * @param content content of the file to attach to the new gist
    * @returns {object} return the info of the action
    */
-  async create(filename: string, content: object) {
+  async create({ filename, content }: GistIOCreate) {
     try {
-      const response = await this.request("POST /gists", {
-        files: {
-          [filename]: {
-            content: JSON.stringify(content),
+      const response = await this.request({
+        query: "POST /gists",
+        config: {
+          files: {
+            [filename]: {
+              content: JSON.stringify(content),
+            },
           },
+          public: false,
         },
-        public: false,
       });
       return response.data;
     } catch (error) {
@@ -48,8 +57,11 @@ export class GistDB {
 
   getGist(gistId: string) {
     try {
-      return this.request("GET /gists/{gist_id}", {
-        gist_id: gistId,
+      return this.request({
+        query: "GET /gists/{gist_id}",
+        config: {
+          gist_id: gistId,
+        },
       });
     } catch (error) {
       throw new Error(error);
@@ -62,7 +74,7 @@ export class GistDB {
    * @param filename name of the file inside the gist
    * @return {Promise<string | object>} File content
    */
-  async get(gistId: string, filename: string): Promise<Response> {
+  async get({ gistId, filename }: GistIOGet): Promise<Response> {
     try {
       const response = await this.getGist(gistId);
       try {
@@ -70,6 +82,42 @@ export class GistDB {
       } catch (error) {
         return response.data.files[filename].content;
       }
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  /**
+   * Function to patch a gist
+   * @param gistId id of the gist
+   * @param filename name of the file to edit
+   * @param content file content
+   * @return {Promise<any, number>} response based in request
+   */
+  async put({
+    gistId,
+    filename,
+    content,
+  }: GistIOPut): Promise<OctokitResponse<any, number>> {
+    try {
+      const config = {
+        gist_id: gistId,
+        files: {
+          [filename]: {
+            content: (function () {
+              try {
+                return JSON.stringify(content);
+              } catch (e) {
+                return content;
+              }
+            })(),
+          },
+        },
+      };
+      return await this.request({
+        query: "PATCH /gists/{gist_id}",
+        config,
+      });
     } catch (error) {
       throw new Error(error);
     }

@@ -1,5 +1,4 @@
 // response.data.files[filename].content
-
 interface Content {
   content: string;
 }

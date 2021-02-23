@@ -5,6 +5,14 @@ const db = new GistDB({
 });
 
 (async function () {
-  const response = await db.getFileList("");
-  console.log(response);
+  db.getFileList("").then((data) => console.log(data));
+
+  const putResult = await db.put({
+    gistId: "",
+    filename: "example.json",
+    content: {
+      hello: false,
+    },
+  });
+  console.log(putResult);
 })();
