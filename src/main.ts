@@ -33,8 +33,8 @@ class GistDB {
         public: false,
       });
       return response.data;
-    } catch (error) {
-      throw new Error(error);
+    } catch (_) {
+      throw new Error("Error creating gist. Filename:" + filename);
     }
   }
 
@@ -43,8 +43,8 @@ class GistDB {
       return this.request("GET /gists/{gist_id}", {
         gist_id: gistId,
       });
-    } catch (error) {
-      throw new Error(error);
+    } catch (_) {
+      throw new Error("Error getting he  gist. Gist id:" + gistId);
     }
   }
 
@@ -56,8 +56,8 @@ class GistDB {
       } catch (error) {
         return response.data.files[filename].content;
       }
-    } catch (error) {
-      throw new Error(error);
+    } catch (_) {
+      throw new Error("Error on getting/parsint gist. Gist id:" + gistId);
     }
   }
 
@@ -65,8 +65,8 @@ class GistDB {
     try {
       const response = await this.getGist(gistId);
       return Object.keys(response.data.files);
-    } catch (error) {
-      throw new Error(error);
+    } catch (_) {
+      throw new Error("Error getting the file list. Gist id:" + gistId);
     }
   }
 }
